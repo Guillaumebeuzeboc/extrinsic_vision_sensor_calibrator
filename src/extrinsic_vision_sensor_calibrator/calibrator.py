@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from cmd import Cmd
 import signal
+from threading import Thread, Lock
 
 # ROS
 import rospy
@@ -39,6 +40,8 @@ class Calibrator(object):
         self.pub_marker = rospy.Publisher('~calibration_target_marker',
                                           Marker, latch=True, queue_size=1)
 
+        self.mutex = Lock()
+
         q = quaternion_from_euler(
             roll_target_rotation,
             pitch_target_rotation,
@@ -70,18 +73,41 @@ class Calibrator(object):
 
         self.br = tf2_ros.TransformBroadcaster()
 
-    def publish_tf(self, add_x=0, add_y=0, add_z=0, add_roll=0,
-                   add_pitch=0, add_yaw=0):
-        self.estimated_sensor_position_x += add_x
-        self.estimated_sensor_position_y += add_y
-        self.estimated_sensor_position_z += add_z
+    def add_x(self, val):
+        self.mutex.acquire()
+        self.estimated_sensor_position_x += val
+        self.mutex.release()
 
+    def add_y(self, val):
+        self.mutex.acquire()
+        self.estimated_sensor_position_y += val
+        self.mutex.release()
+
+    def add_z(self, val):
+        self.mutex.acquire()
+        self.estimated_sensor_position_z += val
+        self.mutex.release()
+
+    def add_roll(self, val):
+        self.mutex.acquire()
         self.estimated_sensor_rotation_roll = normalize_angle(
-            self.estimated_sensor_rotation_roll + add_roll)
+            self.estimated_sensor_rotation_roll + val)
+        self.mutex.release()
+
+    def add_pitch(self, val):
+        self.mutex.acquire()
         self.estimated_sensor_rotation_pitch = normalize_angle(
-            self.estimated_sensor_rotation_pitch + add_pitch)
+            self.estimated_sensor_rotation_pitch + val)
+        self.mutex.release()
+
+    def add_yaw(self, val):
+        self.mutex.acquire()
         self.estimated_sensor_rotation_yaw = normalize_angle(
-            self.estimated_sensor_rotation_yaw + add_yaw)
+            self.estimated_sensor_rotation_yaw + val)
+        self.mutex.release()
+
+    def publish_tf(self):
+        self.mutex.acquire()
 
         t = TransformStamped()
 
@@ -95,6 +121,7 @@ class Calibrator(object):
             self.estimated_sensor_rotation_roll,
             self.estimated_sensor_rotation_pitch,
             self.estimated_sensor_rotation_yaw)
+        self.mutex.release()
         t.transform.rotation.x = q[0]
         t.transform.rotation.y = q[1]
         t.transform.rotation.z = q[2]
@@ -105,29 +132,31 @@ class Calibrator(object):
 
 class CalibrationPrompt(Cmd):
     def __init__(self):
+        rospy.loginfo('Do not ctrl+c the program, enter -> quit <- so you can get the finale ouput')
         Cmd.__init__(self)
         self.calibrator = Calibrator()
+        self.prompt = '<--->'
 
     def get_arg(self, args):
         return 0.0 if len(args) == 0 else float(args)
 
     def do_add_x(self, args):
-        self.calibrator.publish_tf(add_x=self.get_arg(args))
+        self.calibrator.add_x(self.get_arg(args))
 
     def do_add_y(self, args):
-        self.calibrator.publish_tf(add_y=self.get_arg(args))
+        self.calibrator.add_y(self.get_arg(args))
 
     def do_add_z(self, args):
-        self.calibrator.publish_tf(add_z=self.get_arg(args))
+        self.calibrator.add_z(self.get_arg(args))
 
     def do_add_roll(self, args):
-        self.calibrator.publish_tf(add_roll=self.get_arg(args))
+        self.calibrator.add_roll(self.get_arg(args))
 
     def do_add_pitch(self, args):
-        self.calibrator.publish_tf(add_pitch=self.get_arg(args))
+        self.calibrator.add_pitch(self.get_arg(args))
 
     def do_add_yaw(self, args):
-        self.calibrator.publish_tf(add_yaw=self.get_arg(args))
+        self.calibrator.add_yaw(self.get_arg(args))
 
     def do_quit(self, args):
         rospy.loginfo("source frame: {}".format(self.calibrator.tf_source_frame))
@@ -144,23 +173,32 @@ class CalibrationPrompt(Cmd):
         rospy.loginfo("qz: {}".format(q[2]))
         rospy.loginfo("qw: {}".format(q[3]))
         rospy.loginfo("Good bye")
+
+        rospy.signal_shutdown('Quit')
         raise SystemExit
 
     def cmdloop(self, intro=None):
-        while True:
-            try:
-                Cmd.cmdloop(self, intro="")
-                break
-            except KeyboardInterrupt:
-                rospy.logerr("ctrl+c")
+        try:
+            Cmd.cmdloop(self, intro="")
+        except KeyboardInterrupt:
+            rospy.logerr("ctrl+c")
+
+    def update_tf(self):
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            self.calibrator.publish_tf()
+            rate.sleep()
+
+    def run(self):
+        thread = Thread(target=self.update_tf)
+        thread.start()
+        prompt.cmdloop('starting calibation')
+        thread.join()
 
 
 if __name__ == '__main__':
     rospy.init_node('Calibrator')
 
-    #rate = rospy.Rate(10)
-    #while not rospy.is_shutdown():
-    #    rate.sleep()
     prompt = CalibrationPrompt()
-    prompt.prompt = '<--->'
-    prompt.cmdloop('starting calibation')
+    prompt.run()
+
