@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>extrinsic_vision_sensor_calibrator</name>
+  <version>0.0.0</version>
+  <description>The extrinsic_vision_sensor_calibrator package</description>
+
+  <maintainer email="guillaume.beuzeboc@gmail.com">beuzeboc</maintainer>
+
+
+  <license>BSD</license>
+
+  <build_depend>catkin</build_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+
+</package>
