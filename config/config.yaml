@@ -1,23 +1,23 @@
-target_position_source_frame: base_link # origin frame for position of the target (In our case the source frame of our cube)
+target_position_source_frame: lwheel # origin frame for position of the target (In our case the source frame of our cube)
 tf_source_frame: base_link # We are going to move the target by reference to this frame
 tf_target_frame: camera_link # target frame are going to calibrate
 target_position: # position of the target in the target_position_source_frame
-    x: 0.5
-    y: 0.0
-    z: 0.05
+    x: 0.515
+    y: -0.165
+    z: 0.25
 target_rotation:
-    roll: 0
-    pitch: 0
+    roll: 0.785
+    pitch: 0.785
     yaw: 0
 estimated_sensor_position:
-    x: 0
+    x: 0.25
     y: 0
-    z: 0
+    z: 0.07
 estimated_sensor_rotation:
     roll: 0
     pitch: 0
     yaw: 0
 cube_scale:
-    x: 1
-    y: 1
-    z: 1
+    x: 0.058
+    y: 0.058
+    z: 0.058
