@@ -137,15 +137,10 @@ class Calibrator(object):
         rospy.loginfo("x: {}".format(self.estimated_sensor_position_x))
         rospy.loginfo("y: {}".format(self.estimated_sensor_position_y))
         rospy.loginfo("z: {}".format(self.estimated_sensor_position_z))
-        q = quaternion_from_euler(
-            self.estimated_sensor_rotation_roll,
-            self.estimated_sensor_rotation_pitch,
-            self.estimated_sensor_rotation_yaw)
+        rospy.loginfo("Roll: {}".format(self.estimated_sensor_rotation_roll))
+        rospy.loginfo("Pitch: {}".format(self.estimated_sensor_rotation_pitch))
+        rospy.loginfo("Yaw: {}".format(self.estimated_sensor_rotation_yaw))
         self.mutex.release()
-        rospy.loginfo("qx: {}".format(q[0]))
-        rospy.loginfo("qy: {}".format(q[1]))
-        rospy.loginfo("qz: {}".format(q[2]))
-        rospy.loginfo("qw: {}".format(q[3]))
 
 
 class CalibrationPrompt(Cmd):
