@@ -130,6 +130,23 @@ class Calibrator(object):
 
         self.br.sendTransform(t)
 
+    def print_calib(self):
+        self.mutex.acquire()
+        rospy.loginfo("source frame: {}".format(self.tf_source_frame))
+        rospy.loginfo("target frame: {}".format(self.tf_target_frame))
+        rospy.loginfo("x: {}".format(self.estimated_sensor_position_x))
+        rospy.loginfo("y: {}".format(self.estimated_sensor_position_y))
+        rospy.loginfo("z: {}".format(self.estimated_sensor_position_z))
+        q = quaternion_from_euler(
+            self.estimated_sensor_rotation_roll,
+            self.estimated_sensor_rotation_pitch,
+            self.estimated_sensor_rotation_yaw)
+        self.mutex.release()
+        rospy.loginfo("qx: {}".format(q[0]))
+        rospy.loginfo("qy: {}".format(q[1]))
+        rospy.loginfo("qz: {}".format(q[2]))
+        rospy.loginfo("qw: {}".format(q[3]))
+
 
 class CalibrationPrompt(Cmd):
     def __init__(self):
@@ -159,20 +176,11 @@ class CalibrationPrompt(Cmd):
     def do_add_yaw(self, args):
         self.calibrator.add_yaw(self.get_arg(args))
 
+    def do_print_calib(self, args):
+        self.calibrator.print_calib()
+
     def do_quit(self, args):
-        rospy.loginfo("source frame: {}".format(self.calibrator.tf_source_frame))
-        rospy.loginfo("target frame: {}".format(self.calibrator.tf_target_frame))
-        rospy.loginfo("x: {}".format(self.calibrator.estimated_sensor_position_x))
-        rospy.loginfo("y: {}".format(self.calibrator.estimated_sensor_position_y))
-        rospy.loginfo("z: {}".format(self.calibrator.estimated_sensor_position_z))
-        q = quaternion_from_euler(
-            self.calibrator.estimated_sensor_rotation_roll,
-            self.calibrator.estimated_sensor_rotation_pitch,
-            self.calibrator.estimated_sensor_rotation_yaw)
-        rospy.loginfo("qx: {}".format(q[0]))
-        rospy.loginfo("qy: {}".format(q[1]))
-        rospy.loginfo("qz: {}".format(q[2]))
-        rospy.loginfo("qw: {}".format(q[3]))
+        self.calibrator.print_calib()
         rospy.loginfo("Good bye")
 
         rospy.signal_shutdown('Quit')
