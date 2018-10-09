@@ -36,6 +36,7 @@ class Calibrator(object):
         cube_scale_x = rospy.get_param('~cube_scale/x')
         cube_scale_y = rospy.get_param('~cube_scale/y')
         cube_scale_z = rospy.get_param('~cube_scale/z')
+        cube_alpha = rospy.get_param('~cube_alpha')
 
         self.pub_marker = rospy.Publisher('~calibration_target_marker',
                                           Marker, latch=True, queue_size=1)
@@ -64,7 +65,7 @@ class Calibrator(object):
         cube.scale.x = cube_scale_x
         cube.scale.y = cube_scale_y
         cube.scale.z = cube_scale_z
-        cube.color.a = 1.0
+        cube.color.a = cube_alpha
         cube.color.r = 1.0
         cube.color.g = 0.0
         cube.color.b = 0.0

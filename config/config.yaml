@@ -21,3 +21,4 @@ cube_scale:
     x: 1
     y: 1
     z: 1
+cube_alpha: 0.5 # A value of zero would make the cube completely transparent
