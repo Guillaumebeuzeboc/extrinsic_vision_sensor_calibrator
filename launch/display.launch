@@ -1,5 +1,5 @@
 <launch>
-  <node name="calibrator" pkg="extrinsic_vision_sensor_calibrator" type="command.py" output="screen">
+  <node name="calibrator_display" pkg="extrinsic_vision_sensor_calibrator" type="display.py">
     <rosparam command="load" file="$(find extrinsic_vision_sensor_calibrator)/config/config.yaml" />
   </node>
 </launch>
